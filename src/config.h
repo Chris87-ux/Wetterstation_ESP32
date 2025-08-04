@@ -16,11 +16,29 @@
 // Example for an analog sensor
 #define ANALOG_SENSOR_PIN 34
 
+// -- New Analog Sensors --
+#define MQ2_GAS_PIN 32
+#define GY8511_UV_PIN 33
+#define WIND_DIRECTION_PIN 35
+
 // Example for a digital sensor
 #define DIGITAL_SENSOR_PIN 25
 
+// -- Pulse Counter Sensors --
+#define RAIN_GAUGE_PIN 26
+#define WIND_SPEED_PIN 27
+
 // Example for an I2C sensor
 #define BME280_I2C_ADDRESS 0x76
+
+// -- New I2C Sensors --
+#define BH1750_I2C_ADDRESS 0x23
+#define AS3935_I2C_ADDRESS 0x03
+#define AS3935_IRQ_PIN 4
+
+// -- UART Sensor Pins --
+#define MHZ19_RX_PIN 16
+#define MHZ19_TX_PIN 17
 
 
 // -- UPDATE INTERVAL --
