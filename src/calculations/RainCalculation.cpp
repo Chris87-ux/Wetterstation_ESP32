@@ -6,52 +6,61 @@ RainCalculation::RainCalculation(float mmPerPulse, TimeManager* timeManager)
 
 void RainCalculation::calculate(const std::vector<Sensor*>& sensors) {
     if (!_timeManager || !_timeManager->timeIsSynced()) {
-        // We cannot perform time-based calculations without a synced clock
         return;
     }
 
-    // First, check if the day, hour, etc. has rolled over
+    // Rollover logic must be checked *before* adding new rain
     checkForTimeRollover();
 
-    // Find the rain gauge sensor
     for (const auto& sensor : sensors) {
         if (sensor->getName() == "Rain Gauge") {
-            // Downcast to access the specific subclass method
             PulseCounterSensor* rainSensor = static_cast<PulseCounterSensor*>(sensor);
             if (rainSensor) {
                 unsigned long newPulses = rainSensor->getAndResetPulseCount();
                 if (newPulses > 0) {
                     float newRain = newPulses * _mmPerPulse;
-                    _rainLastHour += newRain;
+                    // Add to the current minute, day, week, month
+                    _rainPast60Mins[59] += newRain;
                     _rainToday += newRain;
                     _rainThisWeek += newRain;
                     _rainThisMonth += newRain;
                 }
             }
-            break; // Found the sensor, no need to continue looping
+            break;
         }
     }
 }
 
+float RainCalculation::getRainLastHour() const {
+    float total = 0;
+    for (int i = 0; i < 60; i++) {
+        total += _rainPast60Mins[i];
+    }
+    return total;
+}
+
 void RainCalculation::checkForTimeRollover() {
-    int currentHour = _timeManager->getHour();
+    int currentMinute = _timeManager->getMinute();
     int currentDay = _timeManager->getDay();
-    int currentWday = _timeManager->getDayOfWeek(); // Day of week
+    int currentWday = _timeManager->getDayOfWeek();
     int currentMonth = _timeManager->getMonth();
 
-    // Initialize trackers on first run
-    if (_lastCalcHour == -1) {
-        _lastCalcHour = currentHour;
+    if (_lastCalcMinute == -1) { // First run initialization
+        _lastCalcMinute = currentMinute;
         _lastCalcDay = currentDay;
         _lastCalcWday = currentWday;
         _lastCalcMonth = currentMonth;
         return;
     }
 
-    // Check for hour rollover
-    if (currentHour != _lastCalcHour) {
-        _rainLastHour = 0; // Reset hourly counter
-        _lastCalcHour = currentHour;
+    // Check for minute rollover for the sliding window
+    if (currentMinute != _lastCalcMinute) {
+        // Shift the array
+        for (int i = 0; i < 59; i++) {
+            _rainPast60Mins[i] = _rainPast60Mins[i+1];
+        }
+        _rainPast60Mins[59] = 0; // Clear the current minute's slot
+        _lastCalcMinute = currentMinute;
     }
 
     // Check for day rollover

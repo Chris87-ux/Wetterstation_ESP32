@@ -5,7 +5,8 @@ BH1750Sensor::BH1750Sensor(uint8_t address, const String& topic)
 
 void BH1750Sensor::setup() {
     // The I2C Wire.begin() should be called in the main setup()
-    if (!_lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE, _address)) {
+    _isHealthy = _lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE, _address);
+    if (!_isHealthy) {
         Serial.println("Error initializing BH1750");
     }
 }

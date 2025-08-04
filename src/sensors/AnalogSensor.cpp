@@ -5,6 +5,7 @@ AnalogSensor::AnalogSensor(const String& name, int pin, const String& unit, cons
 
 void AnalogSensor::setup() {
     pinMode(_pin, INPUT);
+    _isHealthy = true; // No failure condition to check for analog read
 }
 
 void AnalogSensor::read() {

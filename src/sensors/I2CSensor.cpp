@@ -7,6 +7,8 @@ void I2CSensor::setup() {
     // The main sketch should call Wire.begin()
     // This setup can be used for sensor-specific initialization
     // For example, checking if the sensor is connected.
+    // Default to healthy, subclasses can override.
+    _isHealthy = true;
 }
 
 String I2CSensor::getName() {

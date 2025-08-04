@@ -8,7 +8,8 @@ AS3935Sensor::AS3935Sensor(uint8_t address, int irqPin, const String& topic)
 
 void AS3935Sensor::setup() {
     pinMode(_irqPin, INPUT);
-    if (!_lightning.begin()) {
+    _isHealthy = _lightning.begin();
+    if (!_isHealthy) {
         Serial.println ("Lightning Sensor not started, check wiring!");
     } else {
         Serial.println ("Lightning Sensor started!");

@@ -33,23 +33,24 @@ String WindDirectionSensor::getValue() {
     return mapValueToDirection(rawValue);
 }
 
+const String CARDINAL_DIRECTIONS[] = {
+    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
+};
+
 String WindDirectionSensor::mapValueToDirection(int analogValue) {
     // Find the closest matching direction in the map
     int smallestDiff = 4096;
-    String direction = "Unknown";
+    int bestMatchIndex = 0;
 
     for (int i = 0; i < NUM_DIRECTIONS; i++) {
         int diff = abs(analogValue - WIND_DIR_MAP[i][0]);
         if (diff < smallestDiff) {
             smallestDiff = diff;
-            // For simplicity, returning degrees. A mapping to N, NNE, etc. could be added here.
-            direction = String(WIND_DIR_MAP[i][1]);
+            bestMatchIndex = i;
         }
     }
 
-    // To return cardinal directions instead of degrees, you would use a second map:
-    // const String CARDINAL_MAP[] = {"N", "NNE", ...};
-    // return CARDINAL_MAP[best_match_index];
-
-    return direction;
+    // Return the cardinal direction string
+    return CARDINAL_DIRECTIONS[bestMatchIndex];
 }

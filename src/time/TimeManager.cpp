@@ -32,6 +32,11 @@ int TimeManager::getHour() {
     return -1;
 }
 
+int TimeManager::getMinute() {
+    if (timeIsSynced()) return _timeinfo.tm_min;
+    return -1;
+}
+
 int TimeManager::getDay() {
     if (timeIsSynced()) return _timeinfo.tm_mday;
     return -1;

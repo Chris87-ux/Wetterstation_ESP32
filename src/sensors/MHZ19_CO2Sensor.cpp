@@ -8,6 +8,11 @@ MHZ19_CO2Sensor::MHZ19_CO2Sensor(HardwareSerial* serial, const String& topic)
 void MHZ19_CO2Sensor::setup() {
     _co2_sensor.autoCalibration(true); // Or false if you want to calibrate manually
     Serial.println("MH-Z19 CO2 sensor initialized.");
+    // The library doesn't have a begin() status, so we do a test read.
+    // If it returns a non-zero value, it's likely working.
+    if (_co2_sensor.getCO2() > 0) {
+        _isHealthy = true;
+    }
 }
 
 void MHZ19_CO2Sensor::read() {

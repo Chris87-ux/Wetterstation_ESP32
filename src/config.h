@@ -14,6 +14,21 @@
 
 // -- SENSOR CONFIGURATION --
 
+// --- Enable/Disable Sensors ---
+// Comment out a line to disable the sensor and exclude it from the build.
+#define USE_LDR
+#define USE_MQ2_GAS
+#define USE_GY8511_UV
+#define USE_WIND_DIRECTION
+#define USE_RAIN_GAUGE
+#define USE_WIND_SPEED
+#define USE_BH1750_LIGHT
+#define USE_AS3935_LIGHTNING
+#define USE_MHZ19_CO2
+// #define USE_SGP30_AIR_QUALITY
+// #define USE_PMS5003_AIR_QUALITY
+// #define USE_SOIL_SENSOR
+
 // -- LDR (example) --
 #define LDR_PIN 34
 #define LDR_TOPIC "weatherstation/livingroom/ldr"
@@ -53,6 +68,21 @@
 #define MHZ19_RX_PIN 16
 #define MHZ19_TX_PIN 17
 #define MHZ19_TOPIC "weatherstation/livingroom/co2"
+
+
+// -- SGP30 Air Quality Sensor --
+#define SGP30_I2C_ADDRESS 0x58
+#define SGP30_TOPIC "weatherstation/livingroom/airquality"
+
+// -- PMS5003 Air Quality Sensor --
+#define PMS5003_RX_PIN 18
+#define PMS5003_TX_PIN 19
+#define PMS5003_TOPIC "weatherstation/livingroom/particles"
+
+// -- Soil Moisture & Temp Sensor --
+#define SOIL_MOISTURE_PIN 36 // ADC1_CH0
+#define SOIL_TEMP_PIN 25     // 1-Wire data pin
+#define SOIL_TOPIC "weatherstation/garden/soil"
 
 
 // -- TIME CONFIGURATION --

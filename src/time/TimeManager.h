@@ -11,6 +11,7 @@ public:
     bool timeIsSynced();
     String getFormattedTime();
     int getHour();
+    int getMinute();
     int getDay();
     int getMonth();
     int getYear();

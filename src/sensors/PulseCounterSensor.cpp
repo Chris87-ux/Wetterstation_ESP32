@@ -26,7 +26,10 @@ void (*isr_functions[MAX_PULSE_SENSORS])() = {isr0, isr1, isr2, isr3};
 
 PulseCounterSensor::PulseCounterSensor(const String& name, uint8_t pin, const String& unit, const String& topic, float conversionFactor)
     : _name(name), _pin(pin), _unit(unit), _topic(topic), _conversionFactor(conversionFactor) {
-    if (_instanceCount < MAX_PULSE_SENSORS) {
+    if (_instanceCount >= MAX_PULSE_SENSORS) {
+        Serial.println("ERROR: Maximum number of pulse sensors exceeded!");
+        // This object will be unhealthy
+    } else {
         _instances[_instanceCount] = this;
         _instanceCount++;
     }
@@ -39,6 +42,7 @@ void PulseCounterSensor::setup() {
     for (int i = 0; i < _instanceCount; i++) {
         if (_instances[i] == this) {
             attachInterrupt(digitalPinToInterrupt(_pin), isr_functions[i], FALLING);
+            _isHealthy = true; // Successfully attached interrupt
             break;
         }
     }

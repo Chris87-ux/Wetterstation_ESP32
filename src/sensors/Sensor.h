@@ -9,10 +9,14 @@ public:
     virtual void setup() = 0; // Pure virtual function for sensor-specific setup
     virtual void read() = 0;  // Pure virtual function to read sensor data
 
+    virtual bool isHealthy() const { return _isHealthy; }
     virtual String getName() = 0;       // Name of the sensor (e.g., "Temperature")
     virtual String getValue() = 0;      // Current value as a string
     virtual String getUnit() = 0;       // Unit of measurement (e.g., "°C")
     virtual String getTopic() = 0;      // MQTT topic for this sensor
+
+protected:
+    bool _isHealthy = false; // Default to unhealthy until setup() proves otherwise
 };
 
 #endif // SENSOR_H

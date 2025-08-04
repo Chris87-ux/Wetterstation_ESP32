@@ -20,7 +20,7 @@ public:
     String getTopic() override { return "weatherstation/rain"; } // Base topic
 
     // New getters for specific values
-    float getRainLastHour() const { return _rainLastHour; }
+    float getRainLastHour() const;
     float getRainToday() const { return _rainToday; }
     float getRainYesterday() const { return _rainYesterday; }
     float getRainThisWeek() const { return _rainThisWeek; }
@@ -40,10 +40,14 @@ private:
     float _rainThisMonth = 0.0;
 
     // State to track time
+    int _lastCalcMinute = -1;
     int _lastCalcHour = -1;
     int _lastCalcDay = -1;
     int _lastCalcWday = -1;
     int _lastCalcMonth = -1;
+
+    // For true 60-minute sliding window
+    float _rainPast60Mins[60] = {0.0};
 };
 
 #endif // RAIN_CALCULATION_H
