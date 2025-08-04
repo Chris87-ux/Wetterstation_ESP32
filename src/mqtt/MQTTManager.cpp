@@ -47,36 +47,13 @@ void MQTTManager::publishData(const String& topic, const String& payload) {
     _mqttClient.publish(topic.c_str(), payload.c_str());
 }
 
-void MQTTManager::publish(const std::vector<Sensor*>& sensors, const std::vector<Calculation*>& calculations) {
-    if (!_mqttClient.connected()) {
-        Serial.println("Cannot publish, MQTT not connected.");
-        return;
-    }
+void MQTTManager::publishRain(RainCalculation* rainCalc) {
+    if (!rainCalc) return;
 
-    // Publish sensor data
-    for (const auto& sensor : sensors) {
-        publishData(sensor->getTopic(), sensor->getValue());
-    }
-
-    // Publish calculation data
-    for (const auto& calc : calculations) {
-        publishData(calc->getTopic(), calc->getValue());
-    }
-
-    /*
-    // Alternative approach: Publish all data as a single JSON object
-    String json = "{";
-    for (const auto& sensor : sensors) {
-        json += "\"" + sensor->getName() + "\":\"" + sensor->getValue() + "\",";
-    }
-    for (const auto& calc : calculations) {
-        json += "\"" + calc->getName() + "\":\"" + calc->getValue() + "\",";
-    }
-    // Remove last comma
-    if (json.length() > 1) {
-        json.remove(json.length() - 1);
-    }
-    json += "}";
-    publishData("weatherstation/data", json);
-    */
+    String baseTopic = rainCalc->getTopic();
+    publishData(baseTopic + "/last_hour", String(rainCalc->getRainLastHour()));
+    publishData(baseTopic + "/today", String(rainCalc->getRainToday()));
+    publishData(baseTopic + "/yesterday", String(rainCalc->getRainYesterday()));
+    publishData(baseTopic + "/this_week", String(rainCalc->getRainThisWeek()));
+    publishData(baseTopic + "/this_month", String(rainCalc->getRainThisMonth()));
 }

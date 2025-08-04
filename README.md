@@ -3,31 +3,59 @@
 This project provides a modular and extensible firmware structure for building a weather station using an ESP32 microcontroller. It's designed to be easily configurable and allows for the simple addition of new sensors, calculations, and communication protocols.
 
 The core features include:
--   **Modular Sensor Integration:** A plugin-style architecture for adding any type of sensor (Analog, Digital, I2C, SPI, etc.).
--   **Calculation Layer:** A system for deriving new values (e.g., Heat Index) from raw sensor data.
+-   **Modular Sensor Integration:** A plugin-style architecture for adding any type of sensor.
+-   **Advanced Calculation Layer:** A system for deriving new values from raw sensor data, including time-based calculations for rainfall.
+-   **NTP Time Sync:** Automatically synchronizes time to ensure accurate calculations.
 -   **MQTT Communication:** A robust MQTT client for publishing data to a broker.
--   **Easy Configuration:** A central `config.h` file for all your settings.
+-   **Centralized Configuration:** A single `config.h` file for all your settings.
 
 This project is designed to be built with [PlatformIO](https://platformio.org/).
 
+## Advanced Calculations
+
+### Rain Measurement
+The system now performs advanced, time-based calculations for rainfall. In addition to the raw pulse count from the sensor, it calculates and publishes the following metrics to dedicated MQTT topics:
+-   Rainfall in the last hour
+-   Total rainfall for today
+-   Total rainfall for yesterday
+-   Total rainfall for the current week
+-   Total rainfall for the current month
+
+The unit for all totals is millimeters (mm), which is equivalent to liters per square meter (l/m²).
+
 ## Sensors Implemented
 
-This project now includes drivers and examples for the following sensors:
+This project includes drivers and examples for the following sensors:
 
-| Measurement       | Sensor            | Interface | Driver Class            | Notes                                   |
-| ----------------- | ----------------- | --------- | ----------------------- | --------------------------------------- |
-| Gas               | MQ-2              | Analog    | `AnalogSensor`          | Reads raw analog value.                 |
-| UV                | GY-8511           | Analog    | `AnalogSensor`          | Reads raw analog value.                 |
-| Wind Direction    | WH-SP-WD          | Analog    | `WindDirectionSensor`   | Maps analog value to degrees.           |
-| Rain              | MS-WH-SP-RG       | Pulse     | `PulseCounterSensor`    | Counts pulses via interrupt.            |
-| Wind Speed        | WH-SP-WS01        | Pulse     | `PulseCounterSensor`    | Measures pulse frequency via interrupt. |
-| Light             | GY-302 (BH1750)   | I2C       | `BH1750Sensor`          | Uses the `claws/BH1750` library.        |
-| Lightning         | AS3935            | I2C       | `AS3935Sensor`          | Uses the `raivisr/AS3935` library.      |
-| CO₂               | MH-Z19E           | UART      | `MHZ19_CO2Sensor`       | Uses the `WifWaf/MH-Z19` library.       |
+| Measurement       | Sensor            | Interface |
+| ----------------- | ----------------- | --------- |
+| Gas               | MQ-2              | Analog    |
+| UV                | GY-8511           | Analog    |
+| Wind Direction    | WH-SP-WD          | Analog    |
+| Rain              | MS-WH-SP-RG       | Pulse     |
+| Wind Speed        | WH-SP-WS01        | Pulse     |
+| Light             | GY-302 (BH1750)   | I2C       |
+| Lightning         | AS3935            | I2C       |
+| CO₂               | MH-Z19E           | UART      |
 
-## Pinout Configuration
+## Configuration
 
-The default pin assignments are defined in `src/config.h`. You can change these to match your hardware setup. The standard I2C pins for the ESP32 are GPIO 22 (SCL) and GPIO 21 (SDA).
+All project-specific settings are centralized in the `src/config.h` file. Before uploading, you must review and set the following:
+
+1.  **Wi-Fi Credentials:** `WIFI_SSID` and `WIFI_PASSWORD`.
+2.  **MQTT Broker Details:** `MQTT_BROKER_IP` and `MQTT_BROKER_PORT`.
+3.  **Time Configuration:**
+    *   `NTP_SERVER`: The NTP server for time synchronization.
+    *   `UTC_OFFSET_SECONDS`: Your time zone's offset from UTC in seconds.
+    *   `DAYLIGHT_OFFSET_SECONDS`: Your daylight saving offset in seconds (usually 3600 or 0).
+4.  **Sensor-Specific Configuration:**
+    *   Review all pin definitions, I2C addresses, and MQTT topics for each sensor.
+    *   **Crucially, set the `RAIN_MM_PER_PULSE`** to match your specific rain gauge's specification (e.g., 0.2794 mm per tip).
+    *   Adjust `WIND_KMH_PER_PULSE_PER_SEC` for your anemometer.
+
+### Pinout Configuration
+
+The default pin assignments are defined in `src/config.h`. The standard I2C pins for the ESP32 are GPIO 22 (SCL) and GPIO 21 (SDA).
 
 | Sensor            | Pin                | ESP32 GPIO |
 | ----------------- | ------------------ | ---------- |
@@ -39,25 +67,6 @@ The default pin assignments are defined in `src/config.h`. You can change these 
 | AS3935 Lightning  | IRQ                | 4          |
 | MH-Z19E CO₂       | RX (Sensor TX)     | 16         |
 | MH-Z19E CO₂       | TX (Sensor RX)     | 17         |
-
-## Project Structure
-
-The project follows the standard PlatformIO directory structure. Key sensor implementations can be found in `src/sensors/`.
-
-```
-.
-├── platformio.ini        # PlatformIO project configuration file
-...
-```
-
-## How to Add a New Sensor
-
-The modular design makes it simple to add new sensors. For a new sensor, you can typically copy one of the existing sensor classes and adapt it for the new hardware and library.
-
-1.  **Add Library (if needed):** Add the required library to `platformio.ini`.
-2.  **Create Sensor Class:** Create a new `.h` and `.cpp` file in `src/sensors/`.
-3.  **Add to `config.h`:** Add any new pin or address definitions.
-4.  **Add to `main.cpp`:** Add an instance of it to the `sensors` vector in `setup()`.
 
 ## Building and Uploading
 

@@ -12,33 +12,53 @@
 #define MQTT_USER ""
 #define MQTT_PASSWORD ""
 
-// -- SENSOR PINS & ADDRESSES --
-// Example for an analog sensor
-#define ANALOG_SENSOR_PIN 34
+// -- SENSOR CONFIGURATION --
 
-// -- New Analog Sensors --
+// -- LDR (example) --
+#define LDR_PIN 34
+#define LDR_TOPIC "weatherstation/livingroom/ldr"
+
+// -- MQ-2 Gas Sensor --
 #define MQ2_GAS_PIN 32
+#define MQ2_TOPIC "weatherstation/livingroom/gas"
+
+// -- GY-8511 UV Sensor --
 #define GY8511_UV_PIN 33
+#define UV_TOPIC "weatherstation/livingroom/uv"
+
+// -- Wind Direction Sensor (WH-SP-WD) --
 #define WIND_DIRECTION_PIN 35
+#define WIND_DIR_TOPIC "weatherstation/livingroom/winddir"
 
-// Example for a digital sensor
-#define DIGITAL_SENSOR_PIN 25
-
-// -- Pulse Counter Sensors --
+// -- Rain Gauge (MS-WH-SP-RG) --
 #define RAIN_GAUGE_PIN 26
+#define RAIN_GAUGE_TOPIC "weatherstation/livingroom/rain"
+#define RAIN_MM_PER_PULSE 0.2794 // Amount of rain per pulse/tip
+
+// -- Wind Speed Sensor (WH-SP-WS01) --
 #define WIND_SPEED_PIN 27
+#define WIND_SPEED_TOPIC "weatherstation/livingroom/windspeed"
+#define WIND_KMH_PER_PULSE_PER_SEC 2.4 // Factor to convert (pulses/sec) to km/h
 
-// Example for an I2C sensor
-#define BME280_I2C_ADDRESS 0x76
-
-// -- New I2C Sensors --
+// -- BH1750 Light Sensor --
 #define BH1750_I2C_ADDRESS 0x23
+#define BH1750_TOPIC "weatherstation/livingroom/light"
+
+// -- AS3935 Lightning Sensor --
 #define AS3935_I2C_ADDRESS 0x03
 #define AS3935_IRQ_PIN 4
+#define AS3935_TOPIC "weatherstation/livingroom/lightning"
 
-// -- UART Sensor Pins --
+// -- MH-Z19E CO2 Sensor --
 #define MHZ19_RX_PIN 16
 #define MHZ19_TX_PIN 17
+#define MHZ19_TOPIC "weatherstation/livingroom/co2"
+
+
+// -- TIME CONFIGURATION --
+#define NTP_SERVER "pool.ntp.org"
+#define UTC_OFFSET_SECONDS 0
+#define DAYLIGHT_OFFSET_SECONDS 3600
 
 
 // -- UPDATE INTERVAL --

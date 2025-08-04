@@ -46,29 +46,35 @@ void PulseCounterSensor::setup() {
 }
 
 void PulseCounterSensor::read() {
-    unsigned long currentTime = millis();
-    unsigned long timeDiff = currentTime - _lastReadTime;
+    // For rate-based sensors (like wind speed), we calculate the value here.
+    // For accumulation sensors (like rain), this function does nothing,
+    // as the calculation is handled externally using getAndResetPulseCount().
+    if (getUnit() == "km/h") {
+        unsigned long currentTime = millis();
+        unsigned long timeDiff = currentTime - _lastReadTime;
 
-    // Atomically read and reset the pulse count
+        if (timeDiff > 0) {
+            // Read the pulse count without resetting it for this calculation
+            noInterrupts();
+            unsigned long pulses = _pulseCount;
+            interrupts();
+
+            float pulsesPerSecond = (float)pulses / (timeDiff / 1000.0);
+            _value = pulsesPerSecond * _conversionFactor;
+        }
+        _lastReadTime = currentTime;
+
+        // Reset the pulse count after the rate is calculated for the interval
+        getAndResetPulseCount();
+    }
+}
+
+unsigned long PulseCounterSensor::getAndResetPulseCount() {
     noInterrupts();
     unsigned long pulses = _pulseCount;
     _pulseCount = 0;
     interrupts();
-
-    if (timeDiff > 0) {
-        // This calculation works for both rate (wind) and accumulation (rain)
-        // For rain, the conversion factor should be "mm per pulse".
-        // For wind, it should be "km/h per (pulse/sec)".
-        float pulsesPerSecond = (float)pulses / (timeDiff / 1000.0);
-
-        if (getUnit() == "mm") { // Rain gauge: total accumulation
-             _value += pulses * _conversionFactor;
-        } else { // Wind speed: rate
-             _value = pulsesPerSecond * _conversionFactor;
-        }
-    }
-
-    _lastReadTime = currentTime;
+    return pulses;
 }
 
 void IRAM_ATTR PulseCounterSensor::handleInterrupt() {

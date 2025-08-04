@@ -12,9 +12,12 @@
 // #include "sensors/YourI2CSensor.h" // Example for later
 #include "calculations/Calculation.h"
 #include "calculations/HeatIndex.h"
+#include "time/TimeManager.h"
+#include "calculations/RainCalculation.h"
 
 // -- Global Objects --
 HardwareSerial Serial2(2); // Use UART2 for the CO2 sensor
+TimeManager timeManager(NTP_SERVER, UTC_OFFSET_SECONDS, DAYLIGHT_OFFSET_SECONDS);
 MQTTManager mqttManager(MQTT_BROKER_IP, MQTT_BROKER_PORT, MQTT_CLIENT_ID);
 std::vector<Sensor*> sensors;
 std::vector<Calculation*> calculations;
@@ -36,23 +39,21 @@ void setup() {
     // Initialize MQTT
     mqttManager.setup(WIFI_SSID, WIFI_PASSWORD);
 
+    // Initialize Time
+    timeManager.setup();
+
     // Initialize Sensors
     // You can add all your sensor objects here.
     // This makes it easy to extend the system.
-    sensors.push_back(new AnalogSensor("LDR", ANALOG_SENSOR_PIN, "lum", "weatherstation/livingroom/ldr"));
-    sensors.push_back(new AnalogSensor("Gas", MQ2_GAS_PIN, "ppm", "weatherstation/livingroom/gas"));
-    sensors.push_back(new AnalogSensor("UV", GY8511_UV_PIN, "index", "weatherstation/livingroom/uv"));
-    sensors.push_back(new WindDirectionSensor("Wind Direction", WIND_DIRECTION_PIN, "weatherstation/livingroom/winddir"));
-    sensors.push_back(new PulseCounterSensor("Rain Gauge", RAIN_GAUGE_PIN, "mm", "weatherstation/livingroom/rain", 0.2794));
-    sensors.push_back(new PulseCounterSensor("Wind Speed", WIND_SPEED_PIN, "km/h", "weatherstation/livingroom/windspeed", 2.4));
-    sensors.push_back(new BH1750Sensor(BH1750_I2C_ADDRESS, "weatherstation/livingroom/light"));
-    sensors.push_back(new AS3935Sensor(AS3935_I2C_ADDRESS, AS3935_IRQ_PIN, "weatherstation/livingroom/lightning"));
-    sensors.push_back(new MHZ19_CO2Sensor(&Serial2, "weatherstation/livingroom/co2"));
-
-    // Example of how you would add a more complex I2C sensor (e.g., BME280)
-    // You would need to create a BME280 class that inherits from I2CSensor
-    // #include "sensors/BME280Sensor.h"
-    // sensors.push_back(new BME280Sensor(BME280_I2C_ADDRESS));
+    sensors.push_back(new AnalogSensor("LDR", LDR_PIN, "lum", LDR_TOPIC));
+    sensors.push_back(new AnalogSensor("Gas", MQ2_GAS_PIN, "ppm", MQ2_TOPIC));
+    sensors.push_back(new AnalogSensor("UV", GY8511_UV_PIN, "index", UV_TOPIC));
+    sensors.push_back(new WindDirectionSensor("Wind Direction", WIND_DIRECTION_PIN, WIND_DIR_TOPIC));
+    sensors.push_back(new PulseCounterSensor("Rain Gauge", RAIN_GAUGE_PIN, "pulses", RAIN_GAUGE_TOPIC, 0)); // No conversion here
+    sensors.push_back(new PulseCounterSensor("Wind Speed", WIND_SPEED_PIN, "km/h", WIND_SPEED_TOPIC, WIND_KMH_PER_PULSE_PER_SEC));
+    sensors.push_back(new BH1750Sensor(BH1750_I2C_ADDRESS, BH1750_TOPIC));
+    sensors.push_back(new AS3935Sensor(AS3935_I2C_ADDRESS, AS3935_IRQ_PIN, AS3935_TOPIC));
+    sensors.push_back(new MHZ19_CO2Sensor(&Serial2, MHZ19_TOPIC));
 
     // Setup all sensors
     for (const auto& sensor : sensors) {
@@ -61,7 +62,7 @@ void setup() {
 
     // Initialize Calculations
     // Add any calculation objects here.
-    calculations.push_back(new HeatIndex("weatherstation/livingroom/heatindex"));
+    calculations.push_back(new RainCalculation(RAIN_MM_PER_PULSE, &timeManager));
 
     Serial.println("Setup complete.");
 }
@@ -95,6 +96,19 @@ void loop() {
         }
 
         Serial.println("\nPublishing data via MQTT...");
-        mqttManager.publish(sensors, calculations);
+        // Generic sensor publishing
+        for (const auto& sensor : sensors) {
+            mqttManager.publishData(sensor->getTopic(), sensor->getValue());
+        }
+        // Specific calculation publishing
+        for (const auto& calc : calculations) {
+            RainCalculation* rainCalc = dynamic_cast<RainCalculation*>(calc);
+            if (rainCalc) {
+                mqttManager.publishRain(rainCalc);
+            } else {
+                // Fallback for other calculation types
+                mqttManager.publishData(calc->getTopic(), calc->getValue());
+            }
+        }
     }
 }

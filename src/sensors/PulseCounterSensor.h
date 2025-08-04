@@ -23,6 +23,9 @@ public:
     // The public ISR handler that will be called by the actual ISR
     void handleInterrupt();
 
+    // Get the number of pulses since the last call and reset the counter
+    unsigned long getAndResetPulseCount();
+
 private:
     String _name;
     uint8_t _pin;

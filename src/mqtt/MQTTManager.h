@@ -5,6 +5,7 @@
 #include <PubSubClient.h>
 #include "../sensors/Sensor.h"
 #include "../calculations/Calculation.h"
+#include "../calculations/RainCalculation.h"
 #include <vector>
 
 class MQTTManager {
@@ -13,11 +14,11 @@ public:
 
     void setup(const char* ssid, const char* password);
     void loop();
-    void publish(const std::vector<Sensor*>& sensors, const std::vector<Calculation*>& calculations);
+    void publishRain(RainCalculation* rainCalc);
+    void publishData(const String& topic, const String& payload);
 
 private:
     void connect();
-    void publishData(const String& topic, const String& payload);
 
     const char* _broker_ip;
     int _broker_port;
