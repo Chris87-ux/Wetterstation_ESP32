@@ -1,0 +1,18 @@
+#ifndef SENSOR_H
+#define SENSOR_H
+
+#include <Arduino.h>
+
+class Sensor {
+public:
+    virtual ~Sensor() {}
+    virtual void setup() = 0; // Pure virtual function for sensor-specific setup
+    virtual void read() = 0;  // Pure virtual function to read sensor data
+
+    virtual String getName() = 0;       // Name of the sensor (e.g., "Temperature")
+    virtual String getValue() = 0;      // Current value as a string
+    virtual String getUnit() = 0;       // Unit of measurement (e.g., "°C")
+    virtual String getTopic() = 0;      // MQTT topic for this sensor
+};
+
+#endif // SENSOR_H
