@@ -13,7 +13,7 @@ public:
     PulseCounterSensor(const String& name, uint8_t pin, const String& unit, const String& topic, float conversionFactor);
 
     void setup() override;
-    void read() override;
+    void read(MQTTManager* mqttManager) override;
 
     String getName() override;
     String getValue() override;

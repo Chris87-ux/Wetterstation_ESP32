@@ -9,7 +9,7 @@ public:
     AS3935Sensor(uint8_t address, int irqPin, const String& topic);
 
     void setup() override;
-    void read() override;
+    void read(MQTTManager* mqttManager) override;
     String getValue() override;
     String getUnit() override;
 

@@ -6,8 +6,8 @@
 class Sensor {
 public:
     virtual ~Sensor() {}
-    virtual void setup() = 0; // Pure virtual function for sensor-specific setup
-    virtual void read() = 0;  // Pure virtual function to read sensor data
+    virtual void setup() = 0;
+    virtual void read(MQTTManager* mqttManager) = 0;
 
     virtual bool isHealthy() const { return _isHealthy; }
     virtual String getName() = 0;       // Name of the sensor (e.g., "Temperature")
@@ -16,6 +16,9 @@ public:
     virtual String getTopic() = 0;      // MQTT topic for this sensor
 
 protected:
+    virtual void publishDebugInfo(MQTTManager* mqttManager) {
+        // Base implementation does nothing
+    }
     bool _isHealthy = false; // Default to unhealthy until setup() proves otherwise
 };
 

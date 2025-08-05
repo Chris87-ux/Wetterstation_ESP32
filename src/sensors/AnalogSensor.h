@@ -8,7 +8,7 @@ public:
     AnalogSensor(const String& name, int pin, const String& unit, const String& topic);
 
     void setup() override;
-    void read() override;
+    void read(MQTTManager* mqttManager) override;
 
     String getName() override;
     String getValue() override;

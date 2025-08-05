@@ -8,8 +8,17 @@ void AnalogSensor::setup() {
     _isHealthy = true; // No failure condition to check for analog read
 }
 
-void AnalogSensor::read() {
+void AnalogSensor::read(MQTTManager* mqttManager) {
     _value = analogRead(_pin);
+    if (g_debug_mode) {
+        publishDebugInfo(mqttManager);
+    }
+}
+
+void AnalogSensor::publishDebugInfo(MQTTManager* mqttManager) {
+    String debugTopic = getTopic() + "/debug";
+    String payload = "Raw ADC: " + String(_value);
+    mqttManager->publishDebug(debugTopic, payload);
 }
 
 String AnalogSensor::getName() {

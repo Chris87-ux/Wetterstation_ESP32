@@ -12,7 +12,7 @@ public:
     SoilSensor(uint8_t moisturePin, uint8_t tempPin, const String& topic);
 
     void setup() override;
-    void read() override;
+    void read(MQTTManager* mqttManager) override;
     String getValue() override;
     String getUnit() override;
     String getName() override;

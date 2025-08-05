@@ -54,3 +54,9 @@ String WindDirectionSensor::mapValueToDirection(int analogValue) {
     // Return the cardinal direction string
     return CARDINAL_DIRECTIONS[bestMatchIndex];
 }
+
+void WindDirectionSensor::publishDebugInfo(MQTTManager* mqttManager) {
+    String debugTopic = getTopic() + "/debug";
+    String payload = "Raw ADC: " + AnalogSensor::getValue(); // Get raw value from parent
+    mqttManager->publishDebug(debugTopic, payload);
+}

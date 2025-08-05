@@ -9,8 +9,7 @@ public:
     I2CSensor(const String& name, uint8_t address, const String& topic);
 
     void setup() override;
-    // read() is left as a pure virtual function, as it's device-specific
-    // void read() override = 0;
+    void read(MQTTManager* mqttManager) override = 0;
 
     String getName() override;
     String getTopic() override;

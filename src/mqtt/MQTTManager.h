@@ -16,6 +16,8 @@ public:
     void loop();
     void publishRain(RainCalculation* rainCalc);
     void publishData(const String& topic, const String& payload);
+    void publishDebug(const String& topic, const String& payload);
+    void publishHealthStatus(Sensor* sensor);
 
 private:
     void connect();

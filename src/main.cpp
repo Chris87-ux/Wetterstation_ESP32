@@ -4,6 +4,7 @@
 #include "config.h"
 #include "time/TimeManager.h"
 #include "mqtt/MQTTManager.h"
+#include "ota/OTAManager.h"
 #include "sensors/Sensor.h"
 #include "calculations/Calculation.h"
 #include "calculations/RainCalculation.h"
@@ -44,8 +45,10 @@
 #endif
 
 // -- Global Objects --
+bool g_debug_mode = false; // Global debug flag
 TimeManager timeManager(NTP_SERVER, UTC_OFFSET_SECONDS, DAYLIGHT_OFFSET_SECONDS);
 MQTTManager mqttManager(MQTT_BROKER_IP, MQTT_BROKER_PORT, MQTT_CLIENT_ID);
+OTAManager otaManager(OTA_HOSTNAME);
 RainCalculation rainCalc(RAIN_MM_PER_PULSE, &timeManager);
 
 // -- Conditionally declare sensor objects --
@@ -114,6 +117,7 @@ void setup() {
     // Initialize network services
     mqttManager.setup(WIFI_SSID, WIFI_PASSWORD);
     timeManager.setup();
+    otaManager.setup();
 
     // Populate the sensor and calculation vectors
     #ifdef USE_LDR
@@ -163,9 +167,11 @@ void setup() {
     // Report health status of all sensors
     Serial.println("\n--- Sensor Health Check ---");
     for (const auto& sensor : sensors) {
+        bool isHealthy = sensor->isHealthy();
         Serial.print(sensor->getName());
         Serial.print(": ");
-        Serial.println(sensor->isHealthy() ? "OK" : "FAIL");
+        Serial.println(isHealthy ? "OK" : "FAIL");
+        mqttManager.publishHealthStatus(sensor);
     }
     Serial.println("---------------------------");
 
@@ -175,6 +181,7 @@ void setup() {
 // -- loop() --
 // Runs continuously
 void loop() {
+    otaManager.loop();
     // Keep the MQTT connection alive
     mqttManager.loop();
 
@@ -184,7 +191,7 @@ void loop() {
 
         Serial.println("\nReading sensor data...");
         for (const auto& sensor : sensors) {
-            sensor->read();
+            sensor->read(&mqttManager);
             Serial.print(sensor->getName());
             Serial.print(": ");
             Serial.print(sensor->getValue());

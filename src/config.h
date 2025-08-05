@@ -94,4 +94,13 @@
 // -- UPDATE INTERVAL --
 #define UPDATE_INTERVAL_MS 60000 // 60 seconds
 
+
+// -- DEBUG & CONTROL --
+#define DEBUG_CONTROL_TOPIC "weatherstation/control/debug"
+extern bool g_debug_mode;
+
+
+// -- OTA --
+#define OTA_HOSTNAME "esp32-weatherstation"
+
 #endif // CONFIG_H

@@ -10,11 +10,16 @@ void PMS5003Sensor::setup() {
     }
 }
 
-void PMS5003Sensor::read() {
+void PMS5003Sensor::read(MQTTManager* mqttManager) {
     if (!_isHealthy) return;
 
     if (!_aqi.read(&_data)) {
-        Serial.println("Could not read from PM2.5 sensor");
+        // Error reading
+    }
+    if (g_debug_mode) {
+        String debugTopic = getTopic() + "/debug";
+        String payload = "Particles > 0.3um / 0.1L air: " + String(_data.particles_03um);
+        mqttManager->publishDebug(debugTopic, payload);
     }
 }
 

@@ -15,7 +15,7 @@ void SoilSensor::setup() {
     }
 }
 
-void SoilSensor::read() {
+void SoilSensor::read(MQTTManager* mqttManager) {
     if (!_isHealthy) return;
 
     // Read analog moisture
@@ -23,10 +23,15 @@ void SoilSensor::read() {
 
     // Read 1-Wire temperature
     _dallasTemp.requestTemperatures();
-    _temperature = _dallasTemp.getTempCByIndex(0);
-    if (_temperature == DEVICE_DISCONNECTED_C) {
-        Serial.println("Failed to read from DS18B20 sensor");
-        _temperature = 0; // Indicate error
+    float temp = _dallasTemp.getTempCByIndex(0);
+    if (temp != DEVICE_DISCONNECTED_C) {
+        _temperature = temp;
+    }
+
+    if (g_debug_mode) {
+        String debugTopic = getTopic() + "/debug";
+        String payload = "Raw Moisture ADC: " + String(_moisture) + ", Raw Temp: " + String(_temperature);
+        mqttManager->publishDebug(debugTopic, payload);
     }
 }
 

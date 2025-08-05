@@ -15,13 +15,18 @@ void MHZ19_CO2Sensor::setup() {
     }
 }
 
-void MHZ19_CO2Sensor::read() {
+void MHZ19_CO2Sensor::read(MQTTManager* mqttManager) {
     int co2 = _co2_sensor.getCO2();
     if (_co2_sensor.errorCode == 0) {
         _co2_ppm = co2;
     } else {
-        Serial.println("Failed to read from MH-Z19 sensor.");
         _co2_ppm = 0; // Indicate error
+    }
+
+    if (g_debug_mode) {
+        String debugTopic = getTopic() + "/debug";
+        String payload = "CO2: " + String(co2) + ", Temp: " + String(_co2_sensor.getLastTemperature()) + ", ErrorCode: " + String(_co2_sensor.errorCode);
+        mqttManager->publishDebug(debugTopic, payload);
     }
 }
 

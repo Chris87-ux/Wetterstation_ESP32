@@ -19,19 +19,24 @@ void AS3935Sensor::setup() {
     }
 }
 
-void AS3935Sensor::read() {
+void AS3935Sensor::read(MQTTManager* mqttManager) {
     // Reset distance from previous readings
     _distance = 0;
 
     if (digitalRead(_irqPin) == HIGH) {
         int event = _lightning.readInterruptReg();
+        String eventString = "";
         if (event == 1) {
-            Serial.println("Noise level too high, consider relocating sensor.");
+            eventString = "Noise";
         } else if (event == 4) {
-            Serial.println("Disturber detected.");
+            eventString = "Disturber";
         } else if (event == 8) {
-            Serial.println("Lightning detected!");
+            eventString = "Lightning";
             _distance = _lightning.lightningDistanceKm();
+        }
+        if (g_debug_mode && eventString != "") {
+            String debugTopic = getTopic() + "/debug";
+            mqttManager->publishDebug(debugTopic, "Event: " + eventString + ", Distance: " + String(_distance) + "km");
         }
     }
 }

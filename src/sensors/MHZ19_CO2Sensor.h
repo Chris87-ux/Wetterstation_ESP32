@@ -10,7 +10,7 @@ public:
     MHZ19_CO2Sensor(HardwareSerial* serial, const String& topic);
 
     void setup() override;
-    void read() override;
+    void read(MQTTManager* mqttManager) override;
     String getValue() override;
     String getUnit() override;
     String getName() override;

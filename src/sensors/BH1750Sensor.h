@@ -9,7 +9,7 @@ public:
     BH1750Sensor(uint8_t address, const String& topic);
 
     void setup() override;
-    void read() override;
+    void read(MQTTManager* mqttManager) override;
     String getValue() override;
     String getUnit() override;
 

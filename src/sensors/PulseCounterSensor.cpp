@@ -49,11 +49,16 @@ void PulseCounterSensor::setup() {
     _lastReadTime = millis();
 }
 
-void PulseCounterSensor::read() {
+void PulseCounterSensor::read(MQTTManager* mqttManager) {
     // For rate-based sensors (like wind speed), we calculate the value here.
     // For accumulation sensors (like rain), this function does nothing,
     // as the calculation is handled externally using getAndResetPulseCount().
     if (getUnit() == "km/h") {
+        if (g_debug_mode) {
+            // In debug mode, we can publish the raw pulse count for wind before it's reset
+            String debugTopic = getTopic() + "/debug";
+            mqttManager->publishDebug(debugTopic, "Pulses this interval: " + String(_pulseCount));
+        }
         unsigned long currentTime = millis();
         unsigned long timeDiff = currentTime - _lastReadTime;
 

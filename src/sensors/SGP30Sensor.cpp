@@ -13,14 +13,19 @@ void SGP30Sensor::setup() {
     // _sgp.setIAQBaseline(0x8973, 0x8AAE);
 }
 
-void SGP30Sensor::read() {
+void SGP30Sensor::read(MQTTManager* mqttManager) {
     if (!_isHealthy) return;
 
     if (_sgp.IAQmeasure()) {
         _tvoc = _sgp.TVOC;
         _eco2 = _sgp.eCO2;
     } else {
-        Serial.println("SGP30 measurement failed");
+        // In debug mode, we can report this failure
+    }
+    if (g_debug_mode) {
+        String debugTopic = getTopic() + "/debug";
+        String payload = "Raw TVOC: " + String(_tvoc) + ", Raw eCO2: " + String(_eco2);
+        mqttManager->publishDebug(debugTopic, payload);
     }
 }
 

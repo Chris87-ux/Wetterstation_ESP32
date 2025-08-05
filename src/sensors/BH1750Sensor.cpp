@@ -11,9 +11,13 @@ void BH1750Sensor::setup() {
     }
 }
 
-void BH1750Sensor::read() {
-    if (_lightMeter.measurementReady()) {
+void BH1750Sensor::read(MQTTManager* mqttManager) {
+    if (_isHealthy && _lightMeter.measurementReady()) {
         _lux = _lightMeter.readLightLevel();
+        if (g_debug_mode) {
+            String debugTopic = getTopic() + "/debug";
+            mqttManager->publishDebug(debugTopic, "Raw lux: " + String(_lux));
+        }
     }
 }
 
