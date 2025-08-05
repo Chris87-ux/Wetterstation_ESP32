@@ -5,26 +5,13 @@ This project provides a professional-grade, modular, and extensible firmware str
 ## Core Features
 -   **Fully Modular:** Every sensor is conditionally compiled. Enable or disable features by changing a single line in `config.h`.
 -   **Robust & Safe:** The code includes health checks for all sensors on startup and uses safe memory management practices.
--   **Advanced Calculations:** Includes time-based calculations for rainfall (60-minute sliding window, daily, weekly, monthly).
+-   **Advanced Calculations:** Includes time-based statistics for rainfall and radiation.
 -   **Remote Management:**
     -   **Over-the-Air (OTA) Updates:** Update the firmware remotely over Wi-Fi.
     -   **MQTT Health Status:** Publishes the boot-up health status of each sensor.
     -   **MQTT Remote Debugging:** Toggle a debug mode via MQTT to receive detailed sensor data for troubleshooting.
--   **NTP Time Sync:** Automatically synchronizes time to ensure accurate calculations.
+-   **NTP Time Sync:** Automatically synchronizes time to ensure accurate timestamps and calculations.
 -   **Centralized Configuration:** A single, clean `config.h` file for all your settings.
-
-## Remote Management
-
-### Over-the-Air (OTA) Updates
-Once the device is on your Wi-Fi network, you can upload new firmware without a physical connection. In PlatformIO, this is typically done by setting an `upload_port` with the device's IP address or hostname in `platformio.ini` and using the "Upload" command. The default hostname is configured in `config.h`.
-
-### MQTT Health & Debugging
-The station uses a base topic (`weatherstation/`) which can be configured.
--   **Health Status:** On boot, the status of each enabled sensor is published to `weatherstation/health/<Sensor_Name>` (e.g., `weatherstation/health/Wind_Direction`). The payload will be `OK` or `FAIL`.
--   **Remote Debugging:**
-    1.  Publish a message (`on`, `true`, or `1`) to the topic `weatherstation/control/debug` to enable debug mode.
-    2.  Publish any other message (`off`, `false`, `0`) to the same topic to disable it.
-    3.  When enabled, each sensor will publish detailed raw data or status messages to its own debug topic (e.g., `weatherstation/livingroom/winddir/debug`).
 
 ## Sensor Suite
 
@@ -44,23 +31,30 @@ This project contains drivers for a wide array of environmental sensors.
 | **Air Quality (Gases)**         | SGP30             | I2C       | *Disabled*     |
 | **Air Quality (Particulates)**  | Plantower PMS5003 | UART      | *Disabled*     |
 | **Soil Moisture & Temp**        | Capacitive + DS18B20 | Analog/1-Wire | *Disabled*|
+| **Ionizing Radiation**          | RadiationD-v1.1   | Pulse     | *Disabled*     |
 
-## Configuration
+## Special Sensor: Geiger Counter Integration
 
-All project configuration is done in `src/config.h`.
+A unique feature of this project is the ability to integrate a DIY Geiger counter like the **RadiationD-v1.1 (CAJOE)** kit.
 
-1.  **Enable/Disable Sensors:** Find the `--- Enable/Disable Sensors ---` section and comment or uncomment the `#define` for each sensor you want to use.
-2.  **Set Network Credentials:** Configure your `WIFI_SSID`, `WIFI_PASSWORD`, and `MQTT_BROKER_IP`.
-3.  **Set Time Zone:** Configure `UTC_OFFSET_SECONDS` and `DAYLIGHT_OFFSET_SECONDS`.
-4.  **Calibrate & Configure Sensors:** Review all pin assignments, I2C addresses, and especially the `RAIN_MM_PER_PULSE` and `WIND_KMH_PER_PULSE_PER_SEC` constants to match your hardware.
+### Hardware Modification
+To connect the board to your ESP32, you need to tap into its pulse output signal. This provides a clean digital pulse for every radiation particle detected by the Geiger tube.
 
-## Future Expansion: Suggested Calculations
+1.  **Locate the Pulse Signal:** On the RadiationD-v1.1 PCB, find the components related to the audio output (the buzzer/beeper). There is typically a resistor leading to the base of the transistor that drives the buzzer. The point between this resistor and the transistor is an ideal place to get the signal.
+2.  **Solder a Connection Wire:** Carefully solder a single wire to this point.
+3.  **Connect to ESP32:** Connect this wire to the GPIO pin defined as `GEIGER_COUNTER_PIN` in `config.h` (default is GPIO 39). Also, ensure you have a common ground (`GND`) connection between the Geiger counter board and the ESP32.
 
-With this rich sensor data, you can implement many more calculations in the `src/calculations` directory.
+### Configuration
+-   Enable the sensor in `config.h` by uncommenting `#define USE_GEIGER_COUNTER`.
+-   Set `GEIGER_COUNTER_PIN` to the GPIO pin you used.
+-   **Crucially, set `GEIGER_CPM_TO_USV_H`**. This is the conversion factor for your specific Geiger tube (e.g., an SBM-20 tube has a factor of `0.0057`). This converts Counts Per Minute (CPM) into the standard dose rate of microsieverts per hour (µSv/h).
 
-| Calculation          | Requires Sensors                | Description                                         |
-| -------------------- | ------------------------------- | --------------------------------------------------- |
-| **Dew Point**        | Temperature, Humidity           | A better measure of how "humid" it feels.           |
-| **Wind Chill**       | Temperature, Wind Speed         | How cold it feels when wind is a factor.            |
-| **AQI (Air Quality Index)** | Particulate (PMS) or Gas (SGP30) | A standardized index for reporting air pollution. |
-| **Cloud Base (Est.)**  | Temperature, Dew Point          | An estimation of the altitude of the cloud base.    |
+### MQTT Topics
+When enabled, the following radiation topics will be published:
+-   `.../radiation/dose`: Current estimated dose rate in µSv/h.
+-   `.../radiation/cpm_avg_last_hour`: Average CPM over the last 60 minutes.
+-   `.../radiation/cpm_peak_today`: Highest CPM value recorded today.
+-   `.../radiation/cpm_peak_yesterday`: Highest CPM value recorded yesterday.
+
+## General Configuration
+All other project settings are in `src/config.h`. Remember to set your Wi-Fi, MQTT, and Time Zone details, and review all sensor pin assignments and calibration factors.

@@ -6,6 +6,7 @@
 #include "../sensors/Sensor.h"
 #include "../calculations/Calculation.h"
 #include "../calculations/RainCalculation.h"
+#include "../calculations/RadiationCalculation.h"
 #include <vector>
 
 class MQTTManager {
@@ -15,6 +16,7 @@ public:
     void setup(const char* ssid, const char* password);
     void loop();
     void publishRain(RainCalculation* rainCalc);
+    void publishRadiation(RadiationCalculation* radiationCalc);
     void publishData(const String& topic, const String& payload);
     void publishDebug(const String& topic, const String& payload);
     void publishHealthStatus(Sensor* sensor);

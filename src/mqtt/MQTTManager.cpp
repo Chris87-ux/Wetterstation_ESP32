@@ -93,3 +93,13 @@ void MQTTManager::publishHealthStatus(Sensor* sensor) {
     String payload = sensor->isHealthy() ? "OK" : "FAIL";
     publishData(healthTopic, payload);
 }
+
+void MQTTManager::publishRadiation(RadiationCalculation* radiationCalc) {
+    if (!radiationCalc) return;
+
+    String baseTopic = radiationCalc->getTopic();
+    publishData(baseTopic + "/dose", String(radiationCalc->getCurrentDoseRate()));
+    publishData(baseTopic + "/cpm_avg_last_hour", String(radiationCalc->getAverageCPM_LastHour()));
+    publishData(baseTopic + "/cpm_peak_today", String(radiationCalc->getPeakCPM_Today()));
+    publishData(baseTopic + "/cpm_peak_yesterday", String(radiationCalc->getPeakCPM_Yesterday()));
+}

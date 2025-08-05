@@ -28,6 +28,7 @@
 // #define USE_SGP30_AIR_QUALITY
 // #define USE_PMS5003_AIR_QUALITY
 // #define USE_SOIL_SENSOR
+// #define USE_GEIGER_COUNTER
 
 // -- LDR (example) --
 #define LDR_PIN 34
@@ -83,6 +84,11 @@
 #define SOIL_MOISTURE_PIN 36 // ADC1_CH0
 #define SOIL_TEMP_PIN 25     // 1-Wire data pin
 #define SOIL_TOPIC "weatherstation/garden/soil"
+
+// -- Geiger Counter (RadiationD-v1.1) --
+#define GEIGER_COUNTER_PIN 39 // GPIO pin to connect to the board's pulse output
+#define GEIGER_COUNTER_TOPIC "weatherstation/radiation"
+#define GEIGER_CPM_TO_USV_H 0.0057 // Conversion factor for SBM-20 tube
 
 
 // -- TIME CONFIGURATION --

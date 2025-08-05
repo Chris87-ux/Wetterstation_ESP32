@@ -8,6 +8,9 @@
 #include "sensors/Sensor.h"
 #include "calculations/Calculation.h"
 #include "calculations/RainCalculation.h"
+#ifdef USE_GEIGER_COUNTER
+#include "calculations/RadiationCalculation.h"
+#endif
 
 // -- Conditionally include sensor headers --
 #ifdef USE_LDR
@@ -90,6 +93,10 @@ PMS5003Sensor pms5003Sensor(&Serial1, PMS5003_TOPIC);
 #ifdef USE_SOIL_SENSOR
 SoilSensor soilSensor(SOIL_MOISTURE_PIN, SOIL_TEMP_PIN, SOIL_TOPIC);
 #endif
+#ifdef USE_GEIGER_COUNTER
+PulseCounterSensor geigerCounter("Geiger Counter", GEIGER_COUNTER_PIN, "CPM", GEIGER_COUNTER_TOPIC, 60.0); // 60 to convert Hz to CPM
+RadiationCalculation radiationCalc(GEIGER_CPM_TO_USV_H, &timeManager);
+#endif
 
 
 // Vectors to hold references to the objects
@@ -156,8 +163,14 @@ void setup() {
     #ifdef USE_SOIL_SENSOR
     sensors.push_back(&soilSensor);
     #endif
+    #ifdef USE_GEIGER_COUNTER
+    sensors.push_back(&geigerCounter);
+    #endif
 
     calculations.push_back(&rainCalc);
+    #ifdef USE_GEIGER_COUNTER
+    calculations.push_back(&radiationCalc);
+    #endif
 
     // Setup all sensors
     for (const auto& sensor : sensors) {
@@ -214,13 +227,22 @@ void loop() {
         }
         // Specific calculation publishing
         for (const auto& calc : calculations) {
+            // Check for RainCalculation
             RainCalculation* rainCalc = dynamic_cast<RainCalculation*>(calc);
             if (rainCalc) {
                 mqttManager.publishRain(rainCalc);
-            } else {
-                // Fallback for other calculation types
-                mqttManager.publishData(calc->getTopic(), calc->getValue());
+                continue; // Move to next calculation
             }
+
+            // Check for RadiationCalculation
+            RadiationCalculation* radiationCalc = dynamic_cast<RadiationCalculation*>(calc);
+            if (radiationCalc) {
+                mqttManager.publishRadiation(radiationCalc);
+                continue; // Move to next calculation
+            }
+
+            // Fallback for other simple calculation types
+            mqttManager.publishData(calc->getTopic(), calc->getValue());
         }
     }
 }
