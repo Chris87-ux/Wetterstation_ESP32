@@ -1,0 +1,47 @@
+#include "MHZ19_CO2Sensor.h"
+
+MHZ19_CO2Sensor::MHZ19_CO2Sensor(HardwareSerial* serial, const String& topic)
+    : _topic(topic) {
+    _co2_sensor.begin(serial);
+}
+
+void MHZ19_CO2Sensor::setup() {
+    _co2_sensor.autoCalibration(true); // Or false if you want to calibrate manually
+    Serial.println("MH-Z19 CO2 sensor initialized.");
+    // The library doesn't have a begin() status, so we do a test read.
+    // If it returns a non-zero value, it's likely working.
+    if (_co2_sensor.getCO2() > 0) {
+        _isHealthy = true;
+    }
+}
+
+void MHZ19_CO2Sensor::read(MQTTManager* mqttManager) {
+    int co2 = _co2_sensor.getCO2();
+    if (_co2_sensor.errorCode == 0) {
+        _co2_ppm = co2;
+    } else {
+        _co2_ppm = 0; // Indicate error
+    }
+
+    if (g_debug_mode) {
+        String debugTopic = getTopic() + "/debug";
+        String payload = "CO2: " + String(co2) + ", Temp: " + String(_co2_sensor.getLastTemperature()) + ", ErrorCode: " + String(_co2_sensor.errorCode);
+        mqttManager->publishDebug(debugTopic, payload);
+    }
+}
+
+String MHZ19_CO2Sensor::getValue() {
+    return String(_co2_ppm);
+}
+
+String MHZ19_CO2Sensor::getUnit() {
+    return "ppm";
+}
+
+String MHZ19_CO2Sensor::getName() {
+    return "CO2";
+}
+
+String MHZ19_CO2Sensor::getTopic() {
+    return _topic;
+}
